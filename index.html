@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cute Pomodoro Timer</title>
+    <title>Selene</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Ffjgjsgshgjrog</h1>
+            <h1><img src="titleimage.png" class="title-image"></h1>
         </header>
 
         <main>
@@ -27,7 +27,7 @@
             </div>
 
             <div class="settings-container">
-                <h2>⚙️ Settings</h2>
+                <h2>➤ Settings</h2>
                 <div class="settings-grid">
                     <div class="setting">
                         <label for="work-time">Work Time (minutes):</label>
@@ -42,27 +42,17 @@
                         <input type="number" id="pomodoro-count" min="1" max="10" value="4">
                     </div>
                 </div>
-                
             </div>
 
             <div class="todo-container">
-                <h2>📝 To-Do List</h2>
+                <h2> To-Do List ✎ᝰ</h2>
                 <div class="todo-controls">
                     <div class="todo-input-group">
                         <input type="text" id="todo-input" placeholder="Add a new task...">
                         <button id="add-todo-btn" class="btn">Add</button>
                     </div>
-                    <div class="group-controls">
-                        <input type="text" id="group-input" placeholder="Create a new group...">
-                        <button id="add-group-btn" class="btn">Add Group</button>
-                    </div>
                 </div>
-                <div class="todo-lists" id="todo-lists">
-                    <div class="todo-group">
-                        <h3>General</h3>
-                        <ul class="todo-list" id="general-list"></ul>
-                    </div>
-                </div>
+                <ul class="todo-list" id="todo-list"></ul>
             </div>
         </main>
 

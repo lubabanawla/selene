@@ -1,118 +1,83 @@
+
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
-    const timerElement = document.getElementById('timer');
-    const timerStatusElement = document.getElementById('timer-status');
-    const startBtn = document.getElementById('start-btn');
-    const pauseBtn = document.getElementById('pause-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    const workTimeInput = document.getElementById('work-time');
-    const breakTimeInput = document.getElementById('break-time');
-    const pomodoroCountInput = document.getElementById('pomodoro-count');
-    const musicSelect = document.getElementById('music-select');
-    const volumeControl = document.getElementById('volume');
-    const todoInput = document.getElementById('todo-input');
-    const addTodoBtn = document.getElementById('add-todo-btn');
-    const groupInput = document.getElementById('group-input');
-    const addGroupBtn = document.getElementById('add-group-btn');
-    const todoLists = document.getElementById('todo-lists');
-    const generalList = document.getElementById('general-list');
-    const pomodoroProgress = document.getElementById('pomodoro-progress');
+    // DOM Elements - Get references to all the HTML elements
+    const timerElement = document.getElementById('timer'); // the timer display
+    const timerStatusElement = document.getElementById('timer-status'); // status text
+    const startBtn = document.getElementById('start-btn'); // start button
+    const pauseBtn = document.getElementById('pause-btn'); // pause button
+    const resetBtn = document.getElementById('reset-btn'); // reset button
+    const workTimeInput = document.getElementById('work-time'); // work duration input
+    const breakTimeInput = document.getElementById('break-time'); // break duration input
+    const pomodoroCountInput = document.getElementById('pomodoro-count'); // pomodoro count input
+    const todoInput = document.getElementById('todo-input'); // todo input field
+    const addTodoBtn = document.getElementById('add-todo-btn'); // add todo button
+    const todoList = document.getElementById('todo-list'); // todo list container
+    const pomodoroProgress = document.getElementById('pomodoro-progress'); // pomodoro progress indicator
 
-    // Timer variables
-    let timer;
-    let timeLeft = workTimeInput.value * 60;
-    let isRunning = false;
-    let isWorkTime = true;
-    let currentPomodoro = 1;
-    let totalPomodoros = parseInt(pomodoroCountInput.value);
+    // timer variables 
+    let timer; // will hold the interval reference for the timer
+    let timeLeft = workTimeInput.value * 60; // current time left in seconds (defaults to work time)
+    let isRunning = false; // flag to track if timer is running
+    let isWorkTime = true; // flag to track if current interval is work time (vs break time)
+    let currentPomodoro = 1; // current pomodoro count
+    let totalPomodoros = parseInt(pomodoroCountInput.value); // total pomodoros in a session
 
-    // Audio elements
-    const audioElements = {
-        lofi: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-lo-fi-beat-225.mp3'),
-        nature: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-forest-stream-ambience-1230.mp3'),
-        'white-noise': new Audio('https://assets.mixkit.co/sfx/preview/mixkit-white-noise-ambience-1236.mp3')
-    };
+    // todo list items -array to store todo items
+    let todos = [];
 
-    // Set audio to loop
-    Object.values(audioElements).forEach(audio => {
-        audio.loop = true;
-    });
-
-    // Initialize todo groups
-    const todoGroups = {
-        'general': []
-    };
-
-    // Initialize timer display
+    // initialize timer display - set up initial display values
     updateTimerDisplay();
     updatePomodoroProgress();
 
-    // Event Listeners
-    startBtn.addEventListener('click', startTimer);
-    pauseBtn.addEventListener('click', pauseTimer);
-    resetBtn.addEventListener('click', resetTimer);
-    addTodoBtn.addEventListener('click', addTodo);
-    addGroupBtn.addEventListener('click', addGroup);
-    todoInput.addEventListener('keypress', function(e) {
+    // event Listeners - set up event handlers for various user interactions
+    startBtn.addEventListener('click', startTimer); // start button click
+    pauseBtn.addEventListener('click', pauseTimer); // pause button click
+    resetBtn.addEventListener('click', resetTimer); // reset button click
+    addTodoBtn.addEventListener('click', addTodo); // add todo button click
+    todoInput.addEventListener('keypress', function(e) { // enter key in todo input
         if (e.key === 'Enter') addTodo();
     });
-    groupInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') addGroup();
-    });
 
-    // Music control
-    musicSelect.addEventListener('change', function() {
-        stopAllAudio();
-        const selectedMusic = musicSelect.value;
-        if (selectedMusic) {
-            audioElements[selectedMusic].volume = volumeControl.value / 100;
-            audioElements[selectedMusic].play();
-        }
-    });
-
-    volumeControl.addEventListener('input', function() {
-        const selectedMusic = musicSelect.value;
-        if (selectedMusic) {
-            audioElements[selectedMusic].volume = volumeControl.value / 100;
-        }
-    });
-
-    // Timer Functions
+    // Timer Functions 
+    /**
+     * starts the timer countdown
+     */
     function startTimer() {
-        if (isRunning) return;
+        if (isRunning) return; // Don't start if already running
         
         isRunning = true;
         timerStatusElement.textContent = isWorkTime ? "Working..." : "Taking a break...";
         
+        // set up the interval that runs every second to update the timer
         timer = setInterval(function() {
-            timeLeft--;
-            updateTimerDisplay();
+            timeLeft--; // decrement time left
+            updateTimerDisplay(); // update the display
             
-            if (timeLeft <= 0) {
-                clearInterval(timer);
+            if (timeLeft <= 0) { // when time runs out
+                clearInterval(timer); // stop the timer
                 
                 // Play notification sound
-                const notification = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-alert-notification-256.mp3');
-                notification.play();
+                // const notification = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-alert-notification-256.mp3');
+                // notification.play();
                 
                 if (isWorkTime) {
-                    // Work time finished, switch to break
+                    // work time finished, switch to break
                     isWorkTime = false;
                     timeLeft = breakTimeInput.value * 60;
                     timerStatusElement.textContent = "Break time!";
                     
-                    // Update progress
+                    // update progress indicators
                     updatePomodoroProgress();
                 } else {
-                    // Break time finished
+                    // break time finished
                     currentPomodoro++;
                     
                     if (currentPomodoro > totalPomodoros) {
-                        // All pomodoros completed
+                        // all pomodoros completed
                         timerStatusElement.textContent = "All pomodoros completed! Great job!";
                         isRunning = false;
                     } else {
-                        // Start next pomodoro
+                        // start next pomodoro
                         isWorkTime = true;
                         timeLeft = workTimeInput.value * 60;
                         timerStatusElement.textContent = "Ready for next pomodoro!";
@@ -123,129 +88,116 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateTimerDisplay();
                 isRunning = false;
             }
-        }, 1000);
+        }, 1000); // run every 1000ms (1 second)
     }
 
+    /**
+     * pauses the running timer
+     */
     function pauseTimer() {
-        if (!isRunning) return;
+        if (!isRunning) return; // don't pause if not running
         
-        clearInterval(timer);
+        clearInterval(timer); // clear the interval
         isRunning = false;
         timerStatusElement.textContent = "Paused";
     }
 
+    /**
+     * resets the timer to initial state
+     */
     function resetTimer() {
-        clearInterval(timer);
+        clearInterval(timer); // clear any running interval
         isRunning = false;
         isWorkTime = true;
         currentPomodoro = 1;
-        timeLeft = workTimeInput.value * 60;
+        timeLeft = workTimeInput.value * 60; // reset to work time
         timerStatusElement.textContent = "Ready to start!";
-        totalPomodoros = parseInt(pomodoroCountInput.value);
+        totalPomodoros = parseInt(pomodoroCountInput.value); // get current value from input
         updateTimerDisplay();
         updatePomodoroProgress();
     }
 
+    /**
+     * updates the timer display with current time left
+     */
     function updateTimerDisplay() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
+        const minutes = Math.floor(timeLeft / 60); // calculate minutes
+        const seconds = timeLeft % 60; // calculate seconds
+        // format as MM:SS with leading zeros
         timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
+    /**
+     * updates the pomodoro progress indicator circles
+     */
     function updatePomodoroProgress() {
-        pomodoroProgress.innerHTML = '';
+        pomodoroProgress.innerHTML = ''; // clear existing circles
         
+        // create a circle for each pomodoro in the session
         for (let i = 1; i <= totalPomodoros; i++) {
             const circle = document.createElement('div');
             circle.className = 'pomodoro-circle';
             
+            // apply different classes based on completion status
             if (i < currentPomodoro) {
-                circle.classList.add('completed');
+                circle.classList.add('completed'); // completed pomodoros
             } else if (i === currentPomodoro) {
-                circle.classList.add('current');
+                circle.classList.add('current'); // current pomodoro
             }
             
-            circle.textContent = i;
+            circle.textContent = i; // display pomodoro number
             pomodoroProgress.appendChild(circle);
         }
     }
 
-    // Todo List Functions
+    // Todo List Functions 
+    /**
+     * adds a new todo item to the list
+     */
     function addTodo() {
-        const todoText = todoInput.value.trim();
-        if (!todoText) return;
+        const todoText = todoInput.value.trim(); // get and clean input
+        if (!todoText) return; // don't add empty todos
         
-        // Get the currently selected group (default to general)
-        const activeGroup = document.querySelector('.todo-group.active') || 
-                           document.querySelector('.todo-group');
-        const groupName = activeGroup.querySelector('h3').textContent;
-        
-        // Add todo to the group
+        // create todo object
         const todo = {
-            id: Date.now(),
+            id: Date.now(), // unique ID based on timestamp
             text: todoText,
             completed: false
         };
         
-        todoGroups[groupName.toLowerCase()].push(todo);
-        renderTodoList(groupName.toLowerCase());
+        todos.push(todo); // add to array
+        renderTodoList(); // update display
         
-        // Clear input
+        // clear input and focus it for next entry
         todoInput.value = '';
         todoInput.focus();
     }
 
-    function addGroup() {
-        const groupName = groupInput.value.trim();
-        if (!groupName || todoGroups[groupName.toLowerCase()]) return;
+    /**
+     * renders the todo list in the UI
+     */
+    function renderTodoList() {
+        todoList.innerHTML = ''; // clear existing list
         
-        // Create new group
-        todoGroups[groupName.toLowerCase()] = [];
-        
-        // Create group element
-        const groupElement = document.createElement('div');
-        groupElement.className = 'todo-group';
-        groupElement.innerHTML = `
-            <h3>${groupName} <button class="delete-group-btn">×</button></h3>
-            <ul class="todo-list" id="${groupName.toLowerCase()}-list"></ul>
-        `;
-        
-        todoLists.appendChild(groupElement);
-        
-        // Add event listener to delete button
-        const deleteBtn = groupElement.querySelector('.delete-group-btn');
-        deleteBtn.addEventListener('click', function() {
-            delete todoGroups[groupName.toLowerCase()];
-            groupElement.remove();
-        });
-        
-        // Clear input
-        groupInput.value = '';
-        groupInput.focus();
-    }
-
-    function renderTodoList(groupName) {
-        const listElement = document.getElementById(`${groupName}-list`);
-        if (!listElement) return;
-        
-        listElement.innerHTML = '';
-        
-        todoGroups[groupName].forEach(todo => {
+        // create a list item for each todo
+        todos.forEach(todo => {
             const li = document.createElement('li');
             li.className = 'todo-item';
-            if (todo.completed) li.classList.add('completed');
+            if (todo.completed) li.classList.add('completed'); // add completed class if needed
             
+            // create the todo item HTML structure
             li.innerHTML = `
                 <input type="checkbox" id="todo-${todo.id}" ${todo.completed ? 'checked' : ''}>
                 <label for="todo-${todo.id}">${todo.text}</label>
                 <button class="delete-todo-btn">×</button>
             `;
             
-            listElement.appendChild(li);
+            todoList.appendChild(li); // add to the list
             
-            // Add event listeners
+            // add event listeners for the todo item
             const checkbox = li.querySelector('input');
             checkbox.addEventListener('change', function() {
+                // update completion status
                 todo.completed = checkbox.checked;
                 if (checkbox.checked) {
                     li.classList.add('completed');
@@ -254,24 +206,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
+            // add delete button functionality
             const deleteBtn = li.querySelector('.delete-todo-btn');
             deleteBtn.addEventListener('click', function() {
-                todoGroups[groupName] = todoGroups[groupName].filter(t => t.id !== todo.id);
-                renderTodoList(groupName);
+                // remove todo from array and re-render
+                todos = todos.filter(t => t.id !== todo.id);
+                renderTodoList();
             });
         });
     }
 
-    // Helper Functions
-    function stopAllAudio() {
-        Object.values(audioElements).forEach(audio => {
-            audio.pause();
-            audio.currentTime = 0;
-        });
-    }
-
-    // Settings change listeners
+    // Settings change -- update timer when settings change
     workTimeInput.addEventListener('change', function() {
+        // Only update if timer isn't running and we're in work mode
         if (!isRunning && isWorkTime) {
             timeLeft = workTimeInput.value * 60;
             updateTimerDisplay();
@@ -279,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     breakTimeInput.addEventListener('change', function() {
+        // only update if timer isn't running and we're in break mode
         if (!isRunning && !isWorkTime) {
             timeLeft = breakTimeInput.value * 60;
             updateTimerDisplay();
@@ -286,10 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     pomodoroCountInput.addEventListener('change', function() {
+        // update total pomodoros and progress display
         totalPomodoros = parseInt(pomodoroCountInput.value);
         updatePomodoroProgress();
     });
 
-    // Initialize the first todo list
-    renderTodoList('general');
+    // initialize the todo list 
+    renderTodoList();
 });
